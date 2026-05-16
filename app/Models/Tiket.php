@@ -13,13 +13,11 @@ class Tiket extends Model
         'stok',
     ];
 
-    // Relasi ke Konser
     public function konser()
     {
         return $this->belongsTo(Konser::class);
     }
 
-    // Relasi ke Transaksi
     public function transaksis()
     {
         return $this->hasMany(Transaksi::class);

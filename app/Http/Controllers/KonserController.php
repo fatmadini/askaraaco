@@ -8,26 +8,20 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class KonserController extends Controller
 {
-    // =========================
-    // TAMPIL DATA + RELASI TIKET
-    // =========================
+   
     public function index()
     {
         $konser = Konser::with('tikets')->latest()->get();
         return view('konser.index', compact('konser'));
     }
 
-    // =========================
-    // FORM TAMBAH
-    // =========================
+
     public function create()
     {
         return view('konser.create');
     }
 
-    // =========================
-    // SIMPAN DATA
-    // =========================
+
     public function store(Request $request)
     {
         $request->validate([
@@ -46,30 +40,28 @@ class KonserController extends Controller
             $file->move(public_path('foto'), $nama_file);
         }
 
+        $kota = Konser::detectKota($request->lokasi);
+
         Konser::create([
             'nama_konser' => $request->nama_konser,
             'tanggal'     => $request->tanggal,
             'lokasi'      => $request->lokasi,
+            'kota'        => $kota,
             'harga'       => $request->harga,
             'kuota'       => $request->kuota,
             'foto'        => $nama_file,
         ]);
 
-        return redirect('/konser')->with('success', 'Konser berhasil ditambahkan!');
+        return redirect('/konser')->with('success', 'Konser berhasil ditambahkan! Kota: ' . ($kota ?? 'Tidak terdeteksi'));
     }
 
-    // =========================
-    // EDIT
-    // =========================
     public function edit($id)
     {
         $data = Konser::findOrFail($id);
         return view('konser.edit', compact('data'));
     }
 
-    // =========================
-    // UPDATE
-    // =========================
+
     public function update(Request $request, $id)
     {
         $data = Konser::findOrFail($id);
@@ -94,20 +86,21 @@ class KonserController extends Controller
             $data->foto = $nama_file;
         }
 
+        $kota = Konser::detectKota($request->lokasi);
+
         $data->update([
             'nama_konser' => $request->nama_konser,
             'tanggal'     => $request->tanggal,
             'lokasi'      => $request->lokasi,
+            'kota'        => $kota,
             'harga'       => $request->harga,
             'kuota'       => $request->kuota,
         ]);
 
-        return redirect('/konser')->with('success', 'Data konser berhasil diupdate!');
+        return redirect('/konser')->with('success', 'Data konser berhasil diupdate! Kota: ' . ($kota ?? 'Tidak terdeteksi'));
     }
 
-    // =========================
-    // DELETE
-    // =========================
+
     public function destroy($id)
     {
         $data = Konser::findOrFail($id);
@@ -118,9 +111,7 @@ class KonserController extends Controller
         return redirect('/konser')->with('success', 'Konser berhasil dihapus!');
     }
 
-    // =========================
-    // EXPORT PDF
-    // =========================
+   
     public function exportPdf()
     {
         $data = Konser::with('tikets')->get();
@@ -128,10 +119,7 @@ class KonserController extends Controller
         return $pdf->download('laporan-konser.pdf');
     }
 
-    // =========================
-    // EXPORT EXCEL (manual, tanpa package)
-    // Menggunakan output HTML table yang dibaca Excel
-    // =========================
+   
     public function exportExcel()
     {
         $data = Konser::with('tikets')->get();
@@ -151,6 +139,7 @@ class KonserController extends Controller
                     <th>Nama Konser</th>
                     <th>Tanggal</th>
                     <th>Lokasi</th>
+                    <th>Kota</th>
                     <th>Harga Dasar</th>
                     <th>Kuota</th>
                     <th>Jenis Tiket</th>
@@ -166,6 +155,7 @@ class KonserController extends Controller
                     <td>' . e($k->nama_konser) . '</td>
                     <td>' . \Carbon\Carbon::parse($k->tanggal)->format('d/m/Y') . '</td>
                     <td>' . e($k->lokasi) . '</td>
+                    <td>' . e($k->kota ?? '-') . '</td>
                     <td>Rp ' . number_format($k->harga, 0, ',', '.') . '</td>
                     <td>' . number_format($k->kuota, 0, ',', '.') . '</td>
                     <td>' . e($tikets) . '</td>
@@ -176,7 +166,7 @@ class KonserController extends Controller
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="4" style="text-align:right;font-weight:bold;">Total Konser:</td>
+                    <td colspan="5" style="text-align:right;font-weight:bold;">Total Konser:</td>
                     <td colspan="3">' . $data->count() . ' konser</td>
                 </tr>
             </tfoot>

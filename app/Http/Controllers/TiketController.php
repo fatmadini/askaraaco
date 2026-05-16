@@ -8,27 +8,21 @@ use App\Models\Konser;
 
 class TiketController extends Controller
 {
-    // =========================
-    // TAMPIL DATA
-    // =========================
+   
     public function index()
     {
         $tiket = Tiket::with('konser')->latest()->get();
         return view('tiket.index', compact('tiket'));
     }
 
-    // =========================
-    // FORM TAMBAH
-    // =========================
+
     public function create()
     {
         $konser = Konser::all();
         return view('tiket.create', compact('konser'));
     }
 
-    // =========================
-    // SIMPAN DATA
-    // =========================
+
     public function store(Request $request)
     {
         $request->validate([
@@ -48,9 +42,6 @@ class TiketController extends Controller
         return redirect('/tiket')->with('success', 'Tiket berhasil ditambahkan!');
     }
 
-    // =========================
-    // EDIT
-    // =========================
     public function edit($id)
     {
         $tiket  = Tiket::findOrFail($id);
@@ -58,9 +49,6 @@ class TiketController extends Controller
         return view('tiket.edit', compact('tiket', 'konser'));
     }
 
-    // =========================
-    // UPDATE
-    // =========================
     public function update(Request $request, $id)
     {
         $tiket = Tiket::findOrFail($id);
@@ -82,9 +70,6 @@ class TiketController extends Controller
         return redirect('/tiket')->with('success', 'Tiket berhasil diupdate!');
     }
 
-    // =========================
-    // DELETE
-    // =========================
     public function destroy($id)
     {
         Tiket::findOrFail($id)->delete();
